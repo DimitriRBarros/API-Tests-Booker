@@ -1,0 +1,48 @@
+# Nome do Workflow
+name: API Test Automation
+
+# Define os gatilhos para a execução (quando o pipeline deve rodar)
+on:
+  push:
+    branches: [main] # Roda quando há um push na branch 'main'
+  pull_request:
+    branches: [main] # Roda quando um Pull Request é aberto para a 'main'
+  workflow_dispatch: # Permite rodar manualmente pela interface do GitHub
+
+# Define os trabalhos (jobs) a serem executados
+jobs:
+  run-postman-tests:
+    name: Run Postman API Tests
+    runs-on: ubuntu-latest # Usa uma máquina virtual Linux (Ubuntu)
+
+    steps:
+      # 1. Faz o checkout (download) do código do seu repositório para a máquina virtual
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Configura o ambiente Node.js para podermos instalar o Newman
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18" # Define a versão do Node.js
+
+      # 3. Instala o Newman e o reporter de HTML
+      - name: Install Newman
+        run: |
+          npm install -g newman
+          npm install -g newman-reporter-htmlextra
+
+      # 4. Roda os testes da API com o comando do Newman
+      - name: Run API tests
+        run: |
+          # O comando irá falhar o pipeline se qualquer teste quebrar
+          newman run collection.json -e environment.json -r "cli,htmlextra" --reporter-htmlextra-export "reports/api_test_report.html"
+
+      # 5. Salva o relatório como um "artefato" do workflow, que pode ser baixado
+      - name: Upload test report
+        # A condição 'if: always()' garante que o relatório seja salvo mesmo se os testes falharem
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-test-report
+          path: reports/
