@@ -1,0 +1,444 @@
+{
+	"info": {
+		"_postman_id": "acc49d02-4042-436c-bb71-f8db1f5f399f",
+		"name": "API Tests - Restful Booker",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22714729"
+	},
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Auth - Create Token",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Valida se o status da resposta é 200 OK\r",
+									"pm.test(\"Status code é 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// 2. Valida se a propriedade 'token' existe e não está vazia no corpo da resposta\r",
+									"pm.test(\"Token foi retornado na resposta\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.token).to.not.be.empty;\r",
+									"    pm.expect(responseData.token).to.be.a('string');\r",
+									"});\r",
+									"\r",
+									"// 3. Armazena o token recebido em uma variável de ambiente\r",
+									"pm.test(\"Token foi armazenado na variável de ambiente\", function() {\r",
+									"    const responseData = pm.response.json();\r",
+									"    if (responseData.token) {\r",
+									"        pm.environment.set(\"authToken\", responseData.token);\r",
+									"    }\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\" : \"admin\",\r\n    \"password\" : \"password123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. CRUD - Bookings",
+			"item": [
+				{
+					"name": "Create Booking",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// 1. Valida o status code\r",
+									"pm.test(\"Status code é 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// 2. Valida o schema da resposta (Contrato da API)\r",
+									"pm.test(\"Schema da resposta é válido\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    const schema = {\r",
+									"        \"type\": \"object\",\r",
+									"        \"properties\": {\r",
+									"            \"bookingid\": { \"type\": \"number\" },\r",
+									"            \"booking\": {\r",
+									"                \"type\": \"object\",\r",
+									"                \"properties\": {\r",
+									"                    \"firstname\": { \"type\": \"string\" },\r",
+									"                    \"lastname\": { \"type\": \"string\" },\r",
+									"                    \"totalprice\": { \"type\": \"number\" },\r",
+									"                    \"depositpaid\": { \"type\": \"boolean\" },\r",
+									"                    \"bookingdates\": {\r",
+									"                        \"type\": \"object\",\r",
+									"                        \"properties\": {\r",
+									"                            \"checkin\": { \"type\": \"string\", \"format\": \"date\" },\r",
+									"                            \"checkout\": { \"type\": \"string\", \"format\": \"date\" }\r",
+									"                        },\r",
+									"                        \"required\": [\"checkin\", \"checkout\"]\r",
+									"                    },\r",
+									"                    \"additionalneeds\": { \"type\": \"string\" }\r",
+									"                },\r",
+									"                \"required\": [\"firstname\", \"lastname\", \"totalprice\", \"depositpaid\", \"bookingdates\"]\r",
+									"            }\r",
+									"        },\r",
+									"        \"required\": [\"bookingid\", \"booking\"]\r",
+									"    };\r",
+									"    pm.expect(tv4.validate(responseData, schema)).to.be.true;\r",
+									"});\r",
+									"\r",
+									"// 3. Armazena o ID da reserva criada\r",
+									"pm.test(\"Booking ID foi armazenado na variável de ambiente\", function() {\r",
+									"    const responseData = pm.response.json();\r",
+									"    if (responseData.bookingid) {\r",
+									"        pm.environment.set(\"bookingId\", responseData.bookingid);\r",
+									"    }\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstname\" : \"Jim\",\r\n    \"lastname\" : \"Brown\",\r\n    \"totalprice\" : 111,\r\n    \"depositpaid\" : true,\r\n    \"bookingdates\" : {\r\n        \"checkin\" : \"2024-01-01\",\r\n        \"checkout\" : \"2025-01-01\"\r\n    },\r\n    \"additionalneeds\" : \"Breakfast\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/booking",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"booking"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Booking",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code é 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Dados da reserva retornada estão corretos\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.firstname).to.eql(\"Jim\");\r",
+									"    pm.expect(responseData.lastname).to.eql(\"Brown\");\r",
+									"    pm.expect(responseData.totalprice).to.eql(111);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{base_url}}/booking/{{bookingId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"booking",
+								"{{bookingId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Booking",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code é 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Preço total foi atualizado corretamente\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.totalprice).to.eql(222);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Cookie",
+								"value": "token={{authToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstname\" : \"Jim\",\r\n    \"lastname\" : \"Brown\",\r\n    \"totalprice\" : 222,\r\n    \"depositpaid\" : true,\r\n    \"bookingdates\" : {\r\n        \"checkin\" : \"2024-01-01\",\r\n        \"checkout\" : \"2025-01-01\"\r\n    },\r\n    \"additionalneeds\" : \"Breakfast and Wi-Fi\"\r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/booking/{{bookingId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"booking",
+								"{{bookingId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Booking",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// A API Restful-booker retorna 201 Created na exclusão, o que é incomum.\r",
+									"// O padrão seria 204 No Content. Vamos testar o comportamento específico dela.\r",
+									"pm.test(\"Status code é 201 Created\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Cookie",
+								"value": "token={{authToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstname\" : \"Jim\",\r\n    \"lastname\" : \"Brown\",\r\n    \"totalprice\" : 222,\r\n    \"depositpaid\" : true,\r\n    \"bookingdates\" : {\r\n        \"checkin\" : \"2024-01-01\",\r\n        \"checkout\" : \"2025-01-01\"\r\n    },\r\n    \"additionalneeds\" : \"Breakfast and Wi-Fi\"\r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/booking/{{bookingId}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"booking",
+								"{{bookingId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Error Tests",
+			"item": [
+				{
+					"name": "Get Non-existent Booking",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// O esperado é receber um erro 404 Not Found\r",
+									"pm.test(\"Status code é 404 Not Found\", function () {\r",
+									"    pm.response.to.have.status(404);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Cookie",
+								"value": "token={{authToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstname\" : \"Jim\",\r\n    \"lastname\" : \"Brown\",\r\n    \"totalprice\" : 222,\r\n    \"depositpaid\" : true,\r\n    \"bookingdates\" : {\r\n        \"checkin\" : \"2024-01-01\",\r\n        \"checkout\" : \"2025-01-01\"\r\n    },\r\n    \"additionalneeds\" : \"Breakfast and Wi-Fi\"\r\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/booking/99999999",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"booking",
+								"99999999"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
